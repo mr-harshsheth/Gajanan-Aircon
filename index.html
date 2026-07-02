@@ -443,8 +443,9 @@
       transition: border-color 0.2s, background 0.2s;
     }
     input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.4); }
-    input:focus, textarea:focus { border-color: var(--blue-light); background: rgba(255,255,255,0.12); }
+    input:focus, textarea:focus, select:focus { border-color: var(--blue-light); background: rgba(255,255,255,0.12); }
     textarea { resize: vertical; min-height: 120px; }
+    select option { color: var(--text-dark); background: var(--white); }
     .btn-submit {
       background: var(--blue-light);
       color: var(--white);
@@ -657,13 +658,12 @@
         <div class="about-text">
           <div class="section-tag reveal">Who We Are</div>
           <h2 class="section-title reveal">experienced Industrial Technicians You Can Trust</h2>
-          <p class="section-sub reveal">Gajanan Aircon has been serving industrial manufacturing plants and factories across Vadodara and Gujarat since 2019. Our team brings hands-on expertise to every project — from initial installation through long-term maintenance.</p>
+          <p class="section-sub reveal">Gajanan Aircon has been serving industrial manufacturing plants and factories across Vadodara and Gujarat since 2016. Our team brings hands-on expertise to every project from initial installation through long-term maintenance.</p>
           <ul class="about-list reveal">
-            <li>Precision shaft and coupling alignment using dial indicators</li>
-            <li>experienced with active manufacturing environments near conveyors, presses, and production machinery</li>
-            <li>Ability to read and interpret mechanical engineering drawings, equipment manuals, and isometric diagrams</li>
-            <li>Coordination with plant maintenance teams for scheduled and emergency work</li>
-            <li>Skilled with bearing pullers, torque wrenches, dial gauges, drills, grinders, and hydraulic presses</li>
+            <li>Installation, commissioning, and preventive maintenance of industrial HVAC systems, chillers, and refrigeration units.</li>
+            <li>Precision alignment of pumps, motors, compressors, and conveyor drives using dial indicators and laser alignment tools.</li>
+            <li>Industrial piping, refrigerant charging, and hydraulic/pneumatic line installation to engineering drawing specifications.</li>
+            <li>Breakdown maintenance and troubleshooting of HVAC systems, chillers, and conveyors to maximize uptime and efficiency.</li>
           </ul>
         </div>
         <div class="about-visual reveal">
@@ -779,6 +779,10 @@
         </div>
 
         <form class="reveal" onsubmit="handleSubmit(event)">
+          <input type="hidden" name="access_key" value="2e3e27fd-f49f-412f-9e04-6d7a893bec37" />
+          <input type="hidden" name="subject" value="New Enquiry — Gajanan Aircon Website" />
+          <input type="hidden" name="from_name" value="Gajanan Aircon Website" />
+          <input type="checkbox" name="botcheck" style="display:none" />
           <div class="form-row">
             <input type="text" name="name" placeholder="Your Name" required />
             <input type="tel" name="phone" placeholder="Phone Number" required />
@@ -786,7 +790,7 @@
           <input type="email" name="email" placeholder="Email Address" />
           <input type="text" name="company" placeholder="Company / Plant Name" />
           <select name="service">
-            <option value="" disabled selected style="color:#999">Service Required</option>
+            <option value="" disabled selected>Service Required</option>
             <option>Industrial Refrigeration</option>
             <option>Conveyor Systems</option>
             <option>Industrial Chillers</option>
@@ -798,6 +802,7 @@
           </select>
           <textarea name="message" placeholder="Describe your requirement or issue..."></textarea>
           <button type="submit" class="btn-submit">Send Enquiry →</button>
+          <p class="form-status" style="font-size:0.85rem; margin-top:-4px;"></p>
         </form>
       </div>
     </div>
@@ -836,19 +841,45 @@
       el.style.transitionDelay = (i * 0.1) + 's';
     });
 
-    // Form submission handler
-    function handleSubmit(e) {
+    // Form submission handler — sends enquiry data to info@gajananaircon.in via Web3Forms
+    async function handleSubmit(e) {
       e.preventDefault();
-      const btn = e.target.querySelector('.btn-submit');
-      btn.textContent = 'Sent! We\'ll be in touch.';
-      btn.style.background = '#27ae60';
+      const form = e.target;
+      const btn = form.querySelector('.btn-submit');
+      const status = form.querySelector('.form-status');
+
+      const originalBtnText = btn.textContent;
+      btn.textContent = 'Sending...';
       btn.disabled = true;
-      setTimeout(() => {
-        btn.textContent = 'Send Enquiry →';
+      status.textContent = '';
+
+      try {
+        const response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        const result = await response.json();
+
+        if (result.success) {
+          btn.textContent = 'Sent! We\'ll be in touch.';
+          btn.style.background = '#27ae60';
+          form.reset();
+        } else {
+          throw new Error(result.message || 'Submission failed');
+        }
+      } catch (err) {
+        btn.textContent = originalBtnText;
         btn.style.background = '';
-        btn.disabled = false;
-        e.target.reset();
-      }, 4000);
+        status.textContent = 'Something went wrong. Please call or email us directly.';
+        status.style.color = '#ffb3b3';
+      } finally {
+        setTimeout(() => {
+          btn.textContent = originalBtnText;
+          btn.style.background = '';
+          btn.disabled = false;
+        }, 4000);
+      }
     }
   </script>
 
